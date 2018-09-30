@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <!-- jQuery Modal -->
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+
+
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="{{ url_for("static", filename="css/styles.css")}}">
+    
+    <title>Movie Machine!</title>
+    
+  </head>
+  <body>
+    <div class="page-header">
+    </div>
+    <hr>
+
+    <div class="container">
+
+      <p style="text-align: center">
+          <button type="button" class="btn btn-primary custom" id="newUser" width=100px ><i class="fas fa-user-plus"></i>
+            New User         
+          </button>
+      </p>
+      <br/>
+      <br/>
+      
+      <p style="text-align: center">
+        <button type="button" class="btn btn-danger custom" id="existingUser"><i class="fas fa-user-check"></i>
+          Existing User
+        </button>
+      </p>  
+    </div>
+
+    <!-- The Modals -->
+
+    <!--Existing User Modal-->
+    <div id="existingUserModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Choose An Existing User</h2>
+          <span id="existingSpan" class="close">&times;</span> 
+        </div>
+        <br>
+        <div class="modal-body">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <div class="input-group-prepend">
+                          <button class="btn btn-danger" type="button"><i class="fas fa-user-tie"></i> Existing User</button>
+                    </div>
+                </div>
+                <select class="custom-select" id="user-dropdown">
+                  <option selected>SELECT</option>
+                </select>
+            </div>
+            <br>
+            <div id="dropDownAlert">
+              <div class="alert alert-danger" role="alert">
+                  Please Select Your User ID!
+              </div>
+            </div>
+            <p style="text-align: center">
+              <button id="existingSubmit" type="submit" class="btn btn-primary" style="width: 200px"><i class="fas fa-sign-in-alt"></i> Submit</button>
+            </p>
+            <br>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- New User Modal -->
+    <div id="newUserModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Enter The ID of New User</h2>
+            <span id="newSpan" class="close">&times;</span> 
+          </div>
+          <div class="modal-body">
+              <form>
+                  <div class="form-group">
+                    <br>
+                    <input id="newUserId" class="form-control" type="text" placeholder="john_1708">
+                    <small id="emailHelp" class="form-text text-muted">Choose Unique User ID.
+                    </small>
+                  </div>
+                  <div id="textboxAlert">
+                    <div class="alert alert-danger" role="alert">
+                        Please Enter The User ID!
+                    </div>
+                  </div>
+                  <p style="text-align: center">
+                    <button id="newSubmit" type="submit" class="btn btn-primary" style="width: 200px"><i class="fas fa-sign-in-alt"></i> Submit</button>
+                  </p>
+              </form>
+          </div>
+        </div>
+      </div>
+
+    <hr>
+    <!-- Footer -->
+    <footer class="page-footer font-small blue pt-4">
+      <!-- Copyright -->
+      <div class="footer-copyright text-center py-3"><i class="far fa-copyright"></i>
+        2018 Copyright:
+        <p>Vinnie, Kanika, Rajesh, Angang, Rohan, Josh</p>
+      </div>
+
+    </footer>
+    <!-- Footer -->
+
+    <!--  JavaScript -->
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.9.1.js"></script>
+    <script type="text/javascript" src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.5.0/d3.js"></script>
+
+    <script>
+      // Get the modals
+      var existingUsermodal = document.getElementById('existingUserModal');
+      var newUserModal = document.getElementById('newUserModal');
+
+      // Get the button that opens the modal
+      var existingUserButton = document.getElementById("existingUser");
+      var newUserButton = document.getElementById("newUser");
+
+      // Get the <span> element that closes the modal
+      var spanExisting = document.getElementById("existingSpan");
+      var spanNew = document.getElementById("newSpan");
+
+      // When the user clicks the button, open the modal 
+      existingUserButton.onclick = function() {
+        existingUsermodal.style.display = "block";
+      }
+      newUserButton.onclick = function() {
+        newUserModal.style.display = "block";
+      }
+      // When the user clicks on <span> (x), close the modal
+      spanNew.onclick = function() {
+        newUserModal.style.display = "none";
+      }
+
+      // When the user clicks on <span> (x), close the modal
+      existingSpan.onclick = function() {
+        existingUsermodal.style.display = "none";
+      }
+
+      // When the user clicks anywhere outside of the modal, close it
+      window.onclick = function(event) {
+          if (event.target == existingUsermodal) {
+            existingUsermodal.style.display = "none";
+          }else if(event.target == newUserModal){
+            newUserModal.style.display = "none";
+          }
+      }
+    </script>
+    <script src="../static/js/movies.js"></script>
+    <!-- <script src="../static/js/trending.js"></script> -->
+    
+</body>
+</html>
