@@ -52,6 +52,7 @@ var rating = function(){
 
     // Insert into table
     d3.json("/insertRatings&userId=" + currentUser + "&movieId=" + movieId + "&movieRating=" + userRating).then(response => {
+        console.log(typeof(response));
         console.log(response);
         response.forEach(function(res){
         });

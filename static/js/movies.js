@@ -1,4 +1,4 @@
-var users = [];
+const users = [];
 var currentUser;
 /*
  * Initialize Function Defination
@@ -23,6 +23,32 @@ var initialize = function(){
             el.className = "dropdown-item";
             div.appendChild(el);
         }
+        $("#existingSubmit").click(function() {
+            var userId = document.getElementById("user-dropdown");
+            currentUser = userId.options[userId.selectedIndex].value;
+            if(currentUser !== 'SELECT'){
+                console.log(currentUser);
+                window.sessionStorage.setItem("currentUser", currentUser)
+                window.sessionStorage.setItem("customUser", true)
+                window.location = "/activity";
+            }else{
+                document.getElementById("dropDownAlert").style.visibility = "visible";
+            }
+        });
+        
+        $("#newSubmit").click(function(e) {
+            e.preventDefault();
+            currentUser = document.getElementById("newUserId").value;
+            var userFound = users.includes(currentUser);
+            if(currentUser && userFound === false){
+                console.log(currentUser);
+                window.sessionStorage.setItem("currentUser", currentUser);
+                window.sessionStorage.setItem("customUser", false)
+                window.location = "/activity";
+            }else{
+                document.getElementById("textboxAlert").style.visibility = "visible";
+            }
+        });
     });
 }
 
@@ -30,29 +56,3 @@ var initialize = function(){
  * Calling initialize function
  */
 initialize();
-
-$("#existingSubmit").click(function() {
-    var userId = document.getElementById("user-dropdown");
-    currentUser = userId.options[userId.selectedIndex].value;
-    if(currentUser !== 'SELECT'){
-        console.log(currentUser);
-        window.sessionStorage.setItem("currentUser", currentUser)
-        window.sessionStorage.setItem("customUser", true)
-        window.location = "/activity";
-    }else{
-        document.getElementById("dropDownAlert").style.visibility = "visible";
-    }
-});
-
-$("#newSubmit").click(function(e) {
-    e.preventDefault();
-    currentUser = document.getElementById("newUserId").value;
-    if(currentUser){
-        console.log(currentUser);
-        window.sessionStorage.setItem("currentUser", currentUser);
-        window.sessionStorage.setItem("customUser", false)
-        window.location = "/activity";
-    }else{
-        document.getElementById("textboxAlert").style.visibility = "visible";
-    }
-});
