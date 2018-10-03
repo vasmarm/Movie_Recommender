@@ -73,7 +73,7 @@ body {font-family: Arial, Helvetica, sans-serif;}
     color: white;
 }
 
-.modal-body {padding: 2px 16px;}
+.modal-body {padding: 2px;}
 
 .modal-footer {
     padding: 2px 16px;
@@ -109,33 +109,47 @@ body {font-family: Arial, Helvetica, sans-serif;}
     text-align: center;
 }
 
-.fa-star:before {
-    content: "\f005";
+x-star-rating {
+    font-family: 'Ionicons';
+    font-size: 64px;
+    display: inline-flex;
+    cursor: pointer;
 }
 
-.rating-list li i.yellow {
-    color: #FFD700;
+x-star-rating > .star::after {
+    content: '\f3ae';
+    color: #777;
+
 }
 
-.rating-list li i.gray {
-    color: #bbb;
+x-star-rating > .star.full::after {
+    content: '\f2fc';
+    color: #007bff;
 }
 
-.list-inline>li {
-    display: inline-block;
-    padding-right: 5px;
-    padding-left: 5px;
-}
+.loading-area{
+    background-color: #FFF;
+    border-radius: 20px !important;
+    margin-left: 5%;
+    margin-right: 5%;
+    height: 30%;
+    width: 15%;
+  }
+  .loading-text{
+    color: #000;
+    font-size: 15px;
+  }
+  .loading-image{
+    height: 300px;
+    width: 300px;
+    padding-top: 20px;
+  }
 
-.rating-list li {
-    padding: 0px;
-}
-.fa {
-    display: inline-block;
-    font: normal normal normal 14px/1 FontAwesome;
-    font-size: inherit;
-    text-rendering: auto;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    transform: translate(0, 0);
+#loading {
+    position:absolute;
+    left:40%;
+    top:50%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }

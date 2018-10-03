@@ -11,9 +11,17 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css" crossorigin="anonymous">
+    
+
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+    <script src="https://code.jquery.com/jquery-3.3.1.js" type="text/javascript" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js" type="text/javascript" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js" type="text/javascript" crossorigin="anonymous"></script>
 
     <!--RapStar-->
     
@@ -22,9 +30,11 @@
         crossorigin="anonymous">
     </script>
 
-    <!-- jQuery Modal -->
+    <!-- Font Awesome Modal -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
 
+    <!-- IonIcons-->
+    <link rel="stylesheet" href="//code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
 
     <!-- Local CSS -->
     <link rel="stylesheet" href="{{ url_for("static", filename="css/styles.css")}}">
@@ -36,28 +46,101 @@
     <div class="page-header">
     </div>
     <hr>
-    <div style="align-content: right">
-        <h4><span class="badge badge-danger">Logged In As - <span class="badge badge-danger" id="userId"></span></span></h4>
+    <div>
+        <h4><span class="badge badge-secondary">Logged In As - <span class="badge badge-secondary" id="userId"></span></span></h4>
     </div>
 
-    
+    <div class="modal" id="loadingModal">
+        <div class="modal-content">
+          <div class="modal-body">
+                  <div class="loading-area">
+                    <img class="loading-image" id="loading"src="http://www.downgraf.com/wp-content/uploads/2014/09/01-progress.gif">
+                    <p></p>
+                  </div>  
+          </div>
+        </div>
+      </div>
+
     <div class="row">
         <div class="col-4 col-md-4">
+            <div style="align-items: center">
+                <h1><span class="badge badge-primary">Top Loved Movies!</span></h1>
+            </div>
           <div id="trending-graph"></div>
         </div>
         <div class="col-8">
-            <ul class="list-inline rating-list">
-                <li><i class="fa fa-star-o yellow"></i></li>
-                <li><i class="fa fa-star-o yellow"></i></li>
-                <li><i class="fa fa-star-o yellow"></i></li>
-                <li><i class="fa fa-star-o yellow"></i></li>
-                <li><i class="fa fa-star-o gray"></i></li>
-            </ul>
+          <div style="align-items: center">
+              <h1><span class="badge badge-primary">Rating Station!</span></h1>
+          </div>
+          <div>
+              <ons-modal var="modal">   
+                  <div class="loading-area">
+                    <img class="loading-image" id="poster" src="http://www.downgraf.com/wp-content/uploads/2014/09/01-progress.gif">
+                  </div>  
+              </ons-modal>
+          </div>
+          <div style="align-items: center">
+              <h4><span class="badge badge-success" >Title :
+              <span class="badge badge-success" id="title"></span></span></h4>
+          </div>
+          
+          <div style="align-items: center">
+              <h4><span class="badge badge-success" >Language :
+              <span class="badge badge-success" id="language"></span></span></h4>
+          </div>
+          
+          <div style="align-items: center">
+              <h4><span class="badge badge-success" >Relase Date (YYYY-MM-DD) :
+              <span class="badge badge-success" id="releaseDate"></span></span></h4>
+          </div>
+          
+         
+          <x-star-rating>
+            <div class="star full"></div>
+            <div class="star full"></div>
+            <div class="star full"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+          </x-star-rating>
+        </div>
+        <hr>
+        <div class="col-12">
+          <div style="align-items: center">
+              <h1><span class="badge badge-primary" >Recommendations For You!</span></h1>
+          </div>
+          
+          <table id="recomendations" class="table table-striped table-bordered" style="width:100%; align-content: center">
+              <thead>
+                  <tr>
+                      <th>Poster</th>
+                      <th>Title 
+                        <input type="text" id="searchTitle" onkeyup="searchByTitle()" placeholder="Search for title.." title="Type in a name"></th>
+                      <th>Language
+                          <input type="text" id="searchLanguage" onkeyup="searchByLanguage()" placeholder="Search for language.." title="Type in a name">
+                      </th>
+                      <th>Release Date(YYYY-MM-DD)
+                          <input type="text" id="searchReleaseDate" onkeyup="searchByReleaseDate()" placeholder="Search for relase date.." title="Type in a name">
+                      </th>
+                  </tr>
+              </thead>
+              <tbody></tbody>
+              <tfoot>
+                  <tr>
+                      <th>Poster</th>
+                      <th>Title</th>
+                      <th>Language</th>
+                      <th>Release Date</th>
+                  </tr>
+              </tfoot>
+              </table>
         </div>
     </div>
-    
-    <div id="example" start="3"></div>
-
+  
     <hr>
     <!-- Footer -->
     <footer class="page-footer font-small blue pt-4">

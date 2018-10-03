@@ -29,7 +29,7 @@ var initialize = function(){
             if(currentUser !== 'SELECT'){
                 console.log(currentUser);
                 window.sessionStorage.setItem("currentUser", currentUser)
-                window.sessionStorage.setItem("customUser", true)
+                // window.sessionStorage.setItem("newUser", false)
                 window.location = "/activity";
             }else{
                 document.getElementById("dropDownAlert").style.visibility = "visible";
@@ -43,7 +43,7 @@ var initialize = function(){
             if(currentUser && userFound === false){
                 console.log(currentUser);
                 window.sessionStorage.setItem("currentUser", currentUser);
-                window.sessionStorage.setItem("customUser", false)
+                // window.sessionStorage.setItem("newUser", true)
                 window.location = "/activity";
             }else{
                 document.getElementById("textboxAlert").style.visibility = "visible";

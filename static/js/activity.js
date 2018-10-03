@@ -1,14 +1,97 @@
+/*
+ * Class to get star ratings and fire click event
+ */
+class StarRating extends HTMLElement {
+    get value () {
+        return this.getAttribute('value') || 0;
+    }
+
+    set value (val) {
+        this.setAttribute('value', val);
+        this.highlight(this.value - 1);
+    }
+
+    get number () {
+        return this.getAttribute('number') || 10;
+    }
+
+    set number (val) {
+        this.setAttribute('number', val);
+
+        this.stars = [];
+
+        while (this.firstChild) {
+            this.removeChild(this.firstChild);
+        }
+
+        for (let i = 0; i < this.number; i++) {
+            let s = document.createElement('div');
+            s.className = 'star';
+            this.appendChild(s);
+            this.stars.push(s);
+        }
+
+        this.value = this.value;
+    }
+
+    highlight (index) {
+        this.stars.forEach((star, i) => {
+            star.classList.toggle('full', i <= index);
+        });
+    }
+    // Passing MovieId and UserId in constructor
+    constructor (movieId, userId) {
+        super();
+        this.movieId = movieId;
+        this.userId = userId;
+        this.number = this.number;
+        // console.log(this.movieId);
+        this.addEventListener('mousemove', e => {
+            let box = this.getBoundingClientRect(),
+                starIndex = Math.floor((e.pageX - box.left) / box.width * this.stars.length);
+
+            this.highlight(starIndex);
+        });
+
+        this.addEventListener('mouseout', () => {
+            this.value = this.value;
+        });
+        var _this = this;
+        this.addEventListener('click', function(e) {
+            let box = this.getBoundingClientRect(),
+                starIndex = Math.floor((e.pageX - box.left) / box.width * this.stars.length);
+            this.value = starIndex + 1;
+            console.log("MovieId - " + ratedMovieStars.movieId);
+            console.log("Rating - " + this.value/2);
+            console.log("UserId - " + ratedMovieStars.userId);
+            window.sessionStorage.setItem("newUser", "false");
+            // Calling rating function with movieId, passing rated stars and userId
+            rating(ratedMovieStars.movieId, (this.value)/2, ratedMovieStars.userId);
+            let rateEvent = new Event('rate');
+            this.dispatchEvent(rateEvent);
+        }.bind(_this));
+    }
+}
+
+customElements.define('x-star-rating', StarRating);
+
+/*
+ * Global Variables
+ */
 var movies = [];
 var imdb_scores = [];
 var rotten_scores = [];
 var meta_scores = [];
 var popularity = [];
-
+var movieId = '';
 var titles = [];
+var ratedMovieStars;
+var totalMovies=0;
+var baseUrl = 'http://image.tmdb.org/t/p/w185_and_h278_bestv2';
+var newUser = '';
 
 var currentUser = window.sessionStorage.getItem("currentUser");
-var customUser = window.sessionStorage.getItem("customUser");
-console.log(customUser);
+
 document.getElementById("userId").innerText = currentUser;
 
 /*
@@ -27,15 +110,69 @@ var initialize = function(){
         */
         //popularMoviesRatings();
         plotPopularMovies();
-        if(customUser){
-            d3.json("/ratingsUserData&userId=" + currentUser).then(response => {
-                console.log(response);
-                response.forEach(function(res){
-                });
-            });
-        }
+        // Getting a fresh list of users and checking if the user is new or not
+        d3.json("/data").then(users => {
+            for(var i=0; i<users.length; i++){
+                if(users[i].userId === currentUser){
+                    checkUser = true;
+                    break;
+                }else{
+                    checkUser = false;
+                }
+            }
+            /* If part has new user which gets only popular movies shown up.
+             * Once a user rates even a single movie modal is trained and recomendations shows 
+             * based upon model not popularity.
+             */ 
+            if(!checkUser){
+                movieId = response[0].movieId;
+                var title = response[0].title;
+                var language = response[0].original_language;
+                var poster = baseUrl + response[0].poster_path;
+                var releaseDate = response[0].release_date;
+                $("#title").text(title);
+                $("#language").text(language);
+                $("#poster").attr("src", poster);
+                $("#releaseDate").text(releaseDate);
+                ratedMovieStars = new StarRating(movieId,currentUser);
+                d3.select("tbody").selectAll("tr")
+                        .data(response)
+                        .enter() // creates placeholder for new data
+                        .append("tr") // appends a div to placeholder
+                        .html(d=> 
+                                    `<td><img src = ${baseUrl + d.poster_path}></td>
+                                    <td>${d.title}</td>
+                                    <td>${d.original_language}</td>
+                                    <td>${d.release_date}</td>`)
+            }
+            else{
+                d3.json("/ratingsUserData&userId=" + currentUser).then(response => {
+                    console.log(response);
+                    totalMovies = response.length;
+                    console.log("Total Movies - " + totalMovies);
+                    movieId = response[0].movieId;
+                    var title = response[0].title;
+                    var language = response[0].original_language;
+                    var poster = response[0].poster_path_full;
+                    var releaseDate = response[0].release_date;
+                    $("#title").text(title);
+                    $("#language").text(language);
+                    $("#poster").attr("src", poster);
+                    $("#releaseDate").text(releaseDate);
+                    ratedMovieStars = new StarRating(movieId,currentUser);
+                    d3.select("tbody").selectAll("tr")
+                        .data(response)
+                        .enter() // creates placeholder for new data
+                        .append("tr") // appends a div to placeholder
+                        .html(d=> 
+                                    `<td><img src = ${d.poster_path_full}></td>
+                                    <td>${d.title}</td>
+                                    <td>${d.original_language}</td>
+                                    <td>${d.release_date}</td>`)
+                                    });
+            }
+        });
     });
-    
 }
 
 /*
@@ -46,95 +183,16 @@ initialize();
 /*
  * Rating Function Defination
  */
-var rating = function(){
-    var movieId = 1;
-    var userRating = 4;
-
+var rating = function(movieId, userRating, userId){
+    var loadingModal = document.getElementById('loadingModal');
+    loadingModal.style.display = "block";
     // Insert into table
-    d3.json("/insertRatings&userId=" + currentUser + "&movieId=" + movieId + "&movieRating=" + userRating).then(response => {
-        console.log(typeof(response));
-        console.log(response);
-        response.forEach(function(res){
-        });
+    d3.json("/insertRatings&userId=" + userId + "&movieId=" + movieId + "&movieRating=" + userRating).then(response => {
+        if(response.status){
+            loadingModal.style.display = "none";
+            window.location.reload();
+        }
     });
-    // 
-}
-/*
- * popularMovies Function Defination
- */
-var popularMoviesRatings = function(){
-    
-    url = "https://www.omdbapi.com/?apikey=e6767b7c&t=";
-    // Use the list of sample names to populate the select options
-    titles.forEach((title) => {
-        var movie = {};
-        d3.json(url + title)
-                .then(function(data) {
-                    movie.title = data.Title;
-                    movie.ratings = data.Ratings;
-                    movies.push(movie); 
-                    try{
-                        for (i = 0; i < movies.length; i++) {
-                            if (movies[i].ratings[0].Value && movies[i].ratings[1] && movies[i]   .ratings[2]){
-                                imdb_scores.push(parseFloat(movies[i].ratings[0].Value));
-                                rotten_scores.push(parseFloat(movies[i].ratings[1].Value));
-                                meta_scores.push(parseFloat(movies[i].ratings[2].Value));
-                                trending();
-                            }else if (movies[i].ratings.length < 3) { 
-                                    imdb_scores.push(0);
-                                    rotten_scores.push(0);
-                                    meta_scores.push(0);
-                                    console.log("UNDEFINED");
-                            }
-                        }
-                    }                   
-                    catch(TypeError){
-                        console.log("Movie Data Not Found!")
-                    }  
-                });
-    });
-}
-
-/*
- * PLOTTING
- *
-*/
-function trending() {
-    // plot setup
-    var trace_imdb = {
-        x: titles,
-        y: imdb_scores.map(function (x) {return x*10}),
-        name: 'IMDB',
-        type: 'bar',
-    };   
-    var trace_rotten = {
-        x: titles,
-        y: rotten_scores,
-        name: 'Rotten Tomatoes',
-        type: 'bar'
-    };
-    var trace_meta = {
-        x: titles,
-        y: meta_scores,
-        name: 'Metacritic',
-        type: 'bar'
-    };
-    var data = [trace_imdb, trace_rotten, trace_meta];
-    var layout = {
-        barmode: 'group',
-        title: 'Top Popular Movies',
-        height: 500,
-        width: 500,
-        xaxis: {
-        tickangle: -25
-        },
-        yaxis: {
-            title: "Viewer Rating"
-        },
-        showlegend: false
-    };
-    // plot
-    Plotly.newPlot('trending-graph', data, layout);
 }
 
 /*
@@ -171,44 +229,66 @@ function plotPopularMovies() {
     Plotly.newPlot('trending-graph', data, layout);
 }
 
-var current_star_statusses = [];
-
-star_elements = $('.fa-star').parent();
-
-star_elements.find(".fa-star").each(function(i, elem)
-{
-   current_star_statusses.push($(elem).hasClass('yellow'));
-});
-
-star_elements.find(".fa-star").mouseenter(changeRatingStars);
-star_elements.find(".fa-star").mouseleave(resetRatingStars);
-
-/**
-* Changes the rating star colors when hovering over it.
-*/
-function changeRatingStars()
-{
-    // Current star hovered
-    var star = $(this);
-
-    // Removes all colors first from all stars
-    $('.fa-star').removeClass('gray').removeClass('yellow');
-
-    // Makes the current hovered star yellow
-    star.addClass('yellow');
-
-    // Makes the previous stars yellow and the next stars gray
-    star.parent().prevAll().children('.fa-star').addClass('yellow');
-    star.parent().nextAll().children('.fa-star').addClass('gray');
+/*
+ * Function for searching in the title column
+ */ 
+function searchByTitle() {
+    var input, filter, table, tr, td, i;
+    input = document.getElementById("searchTitle");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("recomendations");
+    tr = table.getElementsByTagName("tr");
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("td")[1];
+      if (td) {
+        if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }       
     }
+}
 
-/**
-* Resets the rating star colors when not hovered anymore.
-*/
-function resetRatingStars()
-{
-    star_elements.each(function(i, elem)
-                    {
-    $(elem).removeClass('yellow').removeClass('gray').addClass(current_star_statusses[i] ? 'yellow' : 'gray');
-    });
+/*
+ * Function for searching in the language column
+ */
+function searchByLanguage() {
+    var input, filter, table, tr, td, i;
+    input = document.getElementById("searchLanguage");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("recomendations");
+    tr = table.getElementsByTagName("tr");
+    console.log(tr.length);
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("td")[2];
+      if (td) {
+        if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }       
+    }
+}
+
+/*
+ * Function for searching in the release column
+ */
+function searchByReleaseDate() {
+    var input, filter, table, tr, td, i;
+    input = document.getElementById("searchReleaseDate");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("recomendations");
+    tr = table.getElementsByTagName("tr");
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("td")[3];
+      if (td) {
+        if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }       
+    }
 }

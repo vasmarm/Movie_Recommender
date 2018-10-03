@@ -29,7 +29,7 @@ def train_cf(df):
     
     # Load the full dataset from dataframe
     reader = Reader()
-    data = Dataset.load_from_df(df[['userId', 'movieId', 'movieRating']], reader)
+    data = Dataset.load_from_df(df[['userId', 'movieId', 'rating']], reader)
 
     # Train SVD model using tuned parameters
     algo = SVD(
@@ -66,5 +66,20 @@ def predict_cf(user_id, df=ratings_df):
 
     # Predict user-specific ratings for all the movie ids in the ratings data
     df_pred['rating_cf_pred'] = df_pred['movieID'].apply(lambda x: algo.predict(user_id, x).est)
+
+    # Load reference movies metadata
+    df_meta = pd.read_csv("cf_meta.csv.gz")
+
+    # Merge predictions with metadata
+    df_pred = df_pred.merge(df_meta, how='inner', left_on='movieID', right_on='id')
+
+    # Sort by predicted rating
+    df_pred = df_pred.sort_values(by=['rating_cf_pred'], ascending=False)
+
+    # Drop duplicated movie id column
+    df_pred = df_pred.drop(columns=['id'])
+
+    # Fill NaN with ''
+    df_pred = df_pred.fillna('')
     
     return df_pred
